@@ -25,7 +25,7 @@ public class Cell {
             total -= probabilities[i];
             sumTillNow += probabilities[i];
         }
-        probabilities[4] = 1 - sumTillNow;
+        probabilities[3] = 1 - sumTillNow;
     }
 
     public boolean getBarrier() {
@@ -57,7 +57,13 @@ public class Cell {
         for (int i = 0; i < probabilities.length; i++) {
             if (newActions.contains(i)) {
                 probabilities[i] = 1.0 / numberOfNewActions;
+            } else {
+                probabilities[i] = 0.0;
             }
         }
+    }
+
+    public double getNewValue() {
+        return newValue;
     }
 }

@@ -19,9 +19,23 @@ public class PolicyIterationSolver implements MazeSolver {
             // policy evaluation
             PICurrent = performPolicyEvaluation(maze, gamma);
 
+            // update values
+            updateValues(maze);
+
             // greedy choose new pi
             PINext = greedyPolicyImprovement(maze, gamma);
-        } while (Math.abs(PINext - PICurrent) > 0);
+        } while (Math.abs(PINext - PICurrent) > EPSILON);
+    }
+
+    private void updateValues(Maze maze) {
+        Cell[][] cells = maze.getCells();
+        for (int i = 0; i < cells.length; i++) {
+            for (int j = 0; j < cells[i].length; j++) {
+                if (!cells[i][j].getBarrier()) {
+                    cells[i][j].setOldValue(cells[i][j].getNewValue());
+                }
+            }
+        }
     }
 
     private double greedyPolicyImprovement(Maze maze, double gamma) {
@@ -40,7 +54,7 @@ public class PolicyIterationSolver implements MazeSolver {
 
     private Set<Integer> getNewActionsGreedy(double[] actionValues) {
         Set<Integer> newActions = new HashSet<>();
-        double max = Double.MAX_VALUE;
+        double max = Double.MIN_VALUE;
         for (double actionValue : actionValues) {
             max = Math.max(max, actionValue);
         }
