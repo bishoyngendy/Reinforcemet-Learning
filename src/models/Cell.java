@@ -1,18 +1,18 @@
 package models;
 
+import java.util.Arrays;
 import java.util.Random;
-import java.util.Set;
 
-public class Cell {
+public class Cell implements Cloneable {
     private double oldValue;
     private double newValue;
-    private boolean isBarrier;
+    private boolean barrier;
     private double probabilities[];
 
     public Cell() {
         this.oldValue = 0.0;
         this.newValue = 0.0;
-        this.isBarrier = false;
+        this.barrier = false;
         this.probabilities = new double[4];
     }
 
@@ -28,16 +28,24 @@ public class Cell {
         probabilities[3] = 1 - sumTillNow;
     }
 
-    public boolean getBarrier() {
-        return isBarrier;
+    public boolean isBarrier() {
+        return barrier;
     }
 
     public void setBarrier(boolean barrier) {
-        isBarrier = barrier;
+        this.barrier = barrier;
+    }
+
+    public double getOldValue() {
+        return oldValue;
     }
 
     public void setOldValue(double oldValue) {
         this.oldValue = oldValue;
+    }
+
+    public double getNewValue() {
+        return newValue;
     }
 
     public void setNewValue(double newValue) {
@@ -48,22 +56,38 @@ public class Cell {
         return probabilities;
     }
 
-    public double getOldValue() {
-        return oldValue;
+    public void setProbabilities(double[] probabilities) {
+        this.probabilities = probabilities;
     }
 
-    public void updateProbabilities(Set<Integer> newActions) {
-        int numberOfNewActions = newActions.size();
+//    public void updateProbabilities(Set<Integer> newActions) {
+//        int numberOfNewActions = newActions.size();
+//        for (int i = 0; i < probabilities.length; i++) {
+//            if (newActions.contains(i)) {
+//                probabilities[i] = 1.0 / numberOfNewActions;
+//            } else {
+//                probabilities[i] = 0.0;
+//            }
+//        }
+//    }
+
+
+    public void updatePolicy(int newAction) {
         for (int i = 0; i < probabilities.length; i++) {
-            if (newActions.contains(i)) {
-                probabilities[i] = 1.0 / numberOfNewActions;
+            if (i == newAction) {
+                probabilities[i] = 1.0;
             } else {
                 probabilities[i] = 0.0;
             }
         }
     }
 
-    public double getNewValue() {
-        return newValue;
+    public Cell clone() {
+        Cell cell = new Cell();
+        cell.setOldValue(this.oldValue);
+        cell.setNewValue(this.newValue);
+        cell.setBarrier(this.barrier);
+        cell.setProbabilities(this.probabilities.clone());
+        return cell;
     }
 }

@@ -1,18 +1,18 @@
 package models;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class Maze {
     private Cell[][] cells;
+    private int dimension;
 
-    public Maze(int dimension, int numberOfBarriers) throws InvalidArgumentException {
+    public Maze(int dimension, int numberOfBarriers) throws Exception {
         if (numberOfBarriers > dimension * dimension || numberOfBarriers < 0) {
-            throw new InvalidArgumentException(new String[]{"Invalid Barriers Number"});
+            throw new RuntimeException("Invalid Barriers Number");
         }
+        this.dimension = dimension;
         this.cells = new Cell[dimension][dimension];
         for (int i = 0; i < cells.length; i++) {
             for (int j = 0; j < cells[i].length; j++) {
@@ -23,6 +23,10 @@ public class Maze {
         for (Pair pair : pairs) {
             cells[pair.x][pair.y].setBarrier(true);
         }
+    }
+
+    public int getDimension() {
+        return dimension;
     }
 
     private List<Pair> getBarrierIndices(int dimension, int numberOfBarriers) {
