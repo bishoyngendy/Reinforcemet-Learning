@@ -59,7 +59,7 @@ public class TablePrinter {
 
     private int getPolicy(Cell cell) {
         int dir = -1;
-        double max = Double.MIN_VALUE;
+        double max = -Double.MAX_VALUE;
         double[] probabilities = cell.getProbabilities();
         for (int i = 0; i < probabilities.length; i++) {
             if (probabilities[i] > max) {
@@ -69,59 +69,22 @@ public class TablePrinter {
         }
         return dir;
     }
-//
-//    public void print(double[][] arr) {
-//        String str[][] = new String[arr.length][arr.length];
-//        for (int i = 0; i < str.length; i++) {
-//            for (int j = 0; j < str.length; j++) {
-//                str[i][j] = String.valueOf(arr[i][j]);
-//            }
-//        }
-//        print(str);
-//    }
 
-    public void print(int[][] arr) {
+    public void print(double[][] arr, int dimension) {
         String str[][] = new String[arr.length][arr.length];
         for (int i = 0; i < str.length; i++) {
             for (int j = 0; j < str.length; j++) {
-                String s = "";
-                switch (arr[i][j]) {
-                    case 0:
-                        s = "→";
-                        break;
-                    case 1:
-                        s = "↓";
-                        break;
-                    case 2:
-                        s = "←";
-                        break;
-                    case 3:
-                        s = "↑";
-                        break;
-                    default:
-                        s = "#";
-                        break;
+                if (arr[i][j] == -1) {
+                    str[i][j] = String.valueOf('B');
+                } else if (arr[i][j] >= dimension * dimension) {
+                    str[i][j] = String.valueOf("NA");
+                } else {
+                    str[i][j] = String.valueOf(arr[i][j]);
                 }
-                str[i][j] = s;
             }
         }
-        str[str.length - 1][str.length - 1] = "@";
         print(str);
     }
-
-//    public void print(Cell[][] arr) {
-//        String str[][] = new String[arr.length][arr.length];
-//        for (int i = 0; i < str.length; i++) {
-//            for (int j = 0; j < str.length; j++) {
-//                if (arr[i][j].isBarrier())
-//                    str[i][j] = "B";
-//                else
-//                    str[i][j] = ".";
-//            }
-//        }
-//        str[str.length - 1][str.length - 1] = "@";
-//        print(str);
-//    }
 
     private void print(String[][] arr) {
         int mx = 0;

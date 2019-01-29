@@ -4,18 +4,15 @@ import models.Cell;
 import models.Maze;
 import utils.TablePrinter;
 
-import java.util.HashSet;
-import java.util.Set;
+public class ValueIterationSolver implements MazeSolver {
 
-public class PolicyIterationSolver implements MazeSolver {
-    private final static double EPSILON = 0.0000001;
     private final int dimension;
     private final Cell[][] cells;
     private final double gamma;
     private final TablePrinter tablePrinter;
     private int directions[][] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
 
-    public PolicyIterationSolver(Maze maze, double gamma) {
+    public ValueIterationSolver(Maze maze, double gamma) {
         this.dimension = maze.getDimension();
         this.cells = new Cell[dimension][dimension];
         this.gamma = gamma;
@@ -31,25 +28,22 @@ public class PolicyIterationSolver implements MazeSolver {
     public void solve() {
         long startTime = System.currentTimeMillis();
         tablePrinter.printCells(cells);
-        initializeRandomPI();
-        double PICurrent;
-        double PINext;
-        int iterations = 0;
-        do {
+        int iterations;
+        for (iterations = 0; iterations < 100000; iterations++) {
             tablePrinter.printPolicy(cells);
             tablePrinter.printValues(cells);
 
-            // policy evaluation
-            PICurrent = performPolicyEvaluation();
+            // select maximum action and update policy
+            performIteration();
 
             // update old values with new values
-            updateValues();
-
-            // greedy choose new pi
-            PINext = greedyPolicyImprovement();
-
-            iterations++;
-        } while (Math.abs(PINext - PICurrent) > EPSILON);
+            boolean converged = updateValues();
+            if (converged) {
+                tablePrinter.printPolicy(cells);
+                tablePrinter.printValues(cells);
+                break;
+            }
+        }
         long estimatedTime = System.currentTimeMillis() - startTime;
         System.out.println("Time Taken To Solve in ms: " + estimatedTime);
         System.out.println("Number of Iterations to Solve: " + iterations);
@@ -90,44 +84,33 @@ public class PolicyIterationSolver implements MazeSolver {
         return 1 + getPathCost(nextX, nextY);
     }
 
-    private void initializeRandomPI() {
-        for (int i = 0; i < cells.length; i++) {
-            for (int j = 0; j < cells[i].length; j++) {
-                if (!cells[i][j].isBarrier()) {
-                    cells[i][j].initializeProbabilities();
-                }
-            }
-        }
-    }
-
-    private double performPolicyEvaluation() {
-        double policyValue = 0.0;
-        for (int i = 0; i < cells.length; i++) {
-            for (int j = 0; j < cells[i].length; j++) {
+    private void performIteration() {
+        for (int i = 0; i < dimension; i++) {
+            for (int j = 0; j < dimension; j++) {
                 if (!cells[i][j].isBarrier() && !(i == dimension - 1 && j == dimension - 1)) {
-                    double newValue = calculateNewValue(i, j);
-                    cells[i][j].setNewValue(newValue);
-                    policyValue += newValue;
+                    updateValueAndPolicy(i, j);
                 }
             }
         }
-        return policyValue;
     }
 
-    private double calculateNewValue(int row, int column) {
-        double newValue = 0;
-        Cell cell = cells[row][column];
-        double probabilities[] = cell.getProbabilities();
-        for (int i = 0; i < 4; i++) { // 4 actions
+    private void updateValueAndPolicy(int row, int column) {
+        int policy = -1;
+        double value = -Double.MAX_VALUE;
+        for (int i = 0; i < 4; i++) {
             int nextX = row + directions[i][0];
             int nextY = column + directions[i][1];
             if (isValid(nextX, nextY)) {
-                int reward = getImmediateReward(nextX, nextY);
-                newValue += probabilities[i]
-                        * (reward + (gamma * cells[nextX][nextY].getOldValue()));
+                double reward = getImmediateReward(nextX, nextY);
+                double currValue = reward + gamma * cells[nextX][nextY].getOldValue();
+                if (currValue > value) {
+                    value = currValue;
+                    policy = i;
+                }
             }
         }
-        return newValue;
+        cells[row][column].setNewValue(value);
+        cells[row][column].updatePolicy(policy);
     }
 
     private int getImmediateReward(int row, int column) {
@@ -139,51 +122,18 @@ public class PolicyIterationSolver implements MazeSolver {
                 && !cells[row][column].isBarrier());
     }
 
-    private void updateValues() {
+    private boolean updateValues() {
+        boolean converged = true;
         for (int i = 0; i < cells.length; i++) {
             for (int j = 0; j < cells[i].length; j++) {
                 if (!cells[i][j].isBarrier()) {
+                    if (cells[i][j].getOldValue() != cells[i][j].getNewValue()) {
+                        converged = false;
+                    }
                     cells[i][j].setOldValue(cells[i][j].getNewValue());
                 }
             }
         }
-    }
-
-    private double greedyPolicyImprovement() {
-        for (int i = 0; i < cells.length; i++) {
-            for (int j = 0; j < cells[i].length; j++) {
-                if (!cells[i][j].isBarrier()) {
-                    double actionValues[] = getActionValues(i, j);
-                    int newAction = getNewActionGreedy(actionValues);
-                    cells[i][j].updatePolicy(newAction);
-                }
-            }
-        }
-        return performPolicyEvaluation();
-    }
-
-    private int getNewActionGreedy(double[] actionValues) {
-        int newAction = -1;
-        double max = -Double.MAX_VALUE;
-        for (int i = 0; i < 4; i++) {
-            if (actionValues[i] > max) {
-                max = actionValues[i];
-                newAction = i;
-            }
-        }
-        return newAction;
-    }
-
-    private double[] getActionValues(int row, int column) {
-        double actionValues[] = new double[4];
-        for (int i = 0; i < 4; i++) {
-            int nextX = row + directions[i][0];
-            int nextY = column + directions[i][1];
-            if (isValid(nextX, nextY)) {
-                int reward = getImmediateReward(nextX, nextY);
-                actionValues[i] = (reward + (gamma * cells[nextX][nextY].getOldValue()));
-            }
-        }
-        return actionValues;
+        return converged;
     }
 }

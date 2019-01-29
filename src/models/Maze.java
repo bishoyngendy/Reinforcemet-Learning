@@ -9,7 +9,7 @@ public class Maze {
     private int dimension;
 
     public Maze(int dimension, int numberOfBarriers) throws Exception {
-        if (numberOfBarriers > dimension * dimension || numberOfBarriers < 0) {
+        if (numberOfBarriers > dimension * dimension - 1 || numberOfBarriers < 0) {
             throw new RuntimeException("Invalid Barriers Number");
         }
         this.dimension = dimension;
@@ -35,7 +35,9 @@ public class Maze {
         Random random = new Random();
         for (int i = 0; i < dimension; i++) {
             for (int j = 0; j < dimension; j++) {
-                all.add(new Pair(i, j));
+                if (!(i == dimension - 1 && j == dimension - 1)) {
+                    all.add(new Pair(i, j));
+                }
             }
         }
         for (int i = 0; i < numberOfBarriers; i++) {

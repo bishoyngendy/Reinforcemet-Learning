@@ -2,6 +2,7 @@ package models;
 
 import java.util.Arrays;
 import java.util.Random;
+import java.util.Set;
 
 public class Cell implements Cloneable {
     private double oldValue;
@@ -60,16 +61,16 @@ public class Cell implements Cloneable {
         this.probabilities = probabilities;
     }
 
-//    public void updateProbabilities(Set<Integer> newActions) {
-//        int numberOfNewActions = newActions.size();
-//        for (int i = 0; i < probabilities.length; i++) {
-//            if (newActions.contains(i)) {
-//                probabilities[i] = 1.0 / numberOfNewActions;
-//            } else {
-//                probabilities[i] = 0.0;
-//            }
-//        }
-//    }
+    public void updateProbabilities(Set<Integer> newActions) {
+        int numberOfNewActions = newActions.size();
+        for (int i = 0; i < probabilities.length; i++) {
+            if (newActions.contains(i)) {
+                probabilities[i] = 1.0 / numberOfNewActions;
+            } else {
+                probabilities[i] = 0.0;
+            }
+        }
+    }
 
 
     public void updatePolicy(int newAction) {
@@ -89,5 +90,17 @@ public class Cell implements Cloneable {
         cell.setBarrier(this.barrier);
         cell.setProbabilities(this.probabilities.clone());
         return cell;
+    }
+
+    public int getPolicy() {
+        int policy = -1;
+        double max = -Double.MAX_VALUE;
+        for (int i = 0; i < 4; i++) {
+            if (probabilities[i] > max) {
+                max = probabilities[i];
+                policy = i;
+            }
+        }
+        return policy;
     }
 }
